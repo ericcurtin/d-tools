@@ -1,10 +1,15 @@
-#!/bin/bash 
- 
-names=($(docker ps -a --format="{{ .Names }}")) 
- 
+#!/bin/bash
+
+ns=($(docker ps -a --format="{{ .Names }}"))
+
 # warning deletes every line with 172 in /etc/hosts
 sed -i "/172/d" /etc/hosts
 
-for name in "${names[@]}"; do
-    printf "$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' $name) $name\n" >> /etc/hosts
+for n in "${ns[@]}"; do
+    ipn="$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' $n) $n\n"
+    printf "$ipn" >> /etc/hosts
+    if ! grep -q "^$n$" /etc/ansible/hosts; then
+        printf "$n\n$(cat /etc/ansible/hosts)\n" > /etc/ansible/hosts
+    fi
 done
+
