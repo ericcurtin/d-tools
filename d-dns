@@ -1,0 +1,10 @@
+#!/bin/bash 
+ 
+names=($(docker ps -a --format="{{ .Names }}")) 
+ 
+# warning deletes every line with 172 in /etc/hosts
+sed -i "/172/d" /etc/hosts
+
+for name in "${names[@]}"; do
+    printf "$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' $name) $name\n" >> /etc/hosts
+done
